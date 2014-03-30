@@ -14,11 +14,12 @@ Install the go package
     
     go get github.com/fjukstad/rpcman
 
-run the rpc server
+
+Test it by cloning down the repo and running
 
     python server.py
 
-Test it by cloning down the repo and running
+and 
 
     go run test/test.go 
 
