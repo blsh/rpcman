@@ -23,4 +23,5 @@ and
 
     go run test/test.go 
 
-
+# TODO
+Make a python lib out of it
