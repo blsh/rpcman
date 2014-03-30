@@ -7,7 +7,7 @@ import (
     zmq "github.com/alecthomas/gozmq" 
 
 )
-type rpcMan struct { 
+type RPCMan struct { 
     Context *zmq.Context
     Socket *zmq.Socket
     ServAddr string 
@@ -24,24 +24,24 @@ type Response struct {
     Status int
 } 
 
-func Init(addr string) rpcMan { 
+func Init(addr string) RPCMan { 
     context, _ := zmq.NewContext()
     socket, _ := context.NewSocket(zmq.REQ)
 
-    return rpcMan{context,socket,addr} 
+    return RPCMan{context,socket,addr} 
 } 
 
-func (rpc rpcMan) Connect() {
+func (rpc RPCMan) Connect() {
     fmt.Println("Connecting to rpc server at ",rpc.ServAddr) 
     rpc.Socket.Connect(rpc.ServAddr)
 }     
 
-func (rpc rpcMan) Close() {
+func (rpc RPCMan) Close() {
     defer rpc.Context.Close()
     defer rpc.Socket.Close()
 }  
 
-func (rpc rpcMan) Call(method string, args ...interface{}) (interface{}, error){ 
+func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){ 
     
 
     msg := Request{method, args} 
