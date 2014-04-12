@@ -1,7 +1,7 @@
 package rpcman
 
 import (
-    "fmt"
+    "log"
     "errors"
     "encoding/json"    
     zmq "github.com/alecthomas/gozmq" 
@@ -32,7 +32,7 @@ func Init(addr string) RPCMan {
 } 
 
 func (rpc RPCMan) Connect() {
-    fmt.Println("Connecting to rpc server at ",rpc.ServAddr) 
+    log.Println("Connecting to rpc server at ",rpc.ServAddr) 
     rpc.Socket.Connect(rpc.ServAddr)
 }     
 
@@ -48,7 +48,7 @@ func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){
 
     enc, err := json.Marshal(msg)
     if err != nil {
-        fmt.Println("json error", err) 
+        log.Println("json error", err) 
         return -1, err        
     } 
     rpc.Socket.Send(enc, 0)
@@ -60,7 +60,7 @@ func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){
     err = json.Unmarshal(reply,resp) 
     
     if err != nil {
-        fmt.Println("json error", err)
+        log.Println("json error", err)
         return -1, err
     }
 
