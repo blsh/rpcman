@@ -4,6 +4,7 @@ import (
     "log"
     "errors"
     "encoding/json"    
+    "time"
     zmq "github.com/alecthomas/gozmq" 
 
 )
@@ -28,12 +29,16 @@ func Init(addr string) RPCMan {
     context, _ := zmq.NewContext()
     socket, _ := context.NewSocket(zmq.REQ)
 
+    // set timeout to 1s
+    duration, _ := time.ParseDuration("1s")
+    socket.SetRcvTimeout(duration)
+
     return RPCMan{context,socket,addr} 
 } 
 
-func (rpc RPCMan) Connect() {
+func (rpc RPCMan) Connect() error {
     log.Println("Connecting to rpc server at ",rpc.ServAddr) 
-    rpc.Socket.Connect(rpc.ServAddr)
+    return rpc.Socket.Connect(rpc.ServAddr)
 }     
 
 func (rpc RPCMan) Close() {
@@ -54,8 +59,11 @@ func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){
     rpc.Socket.Send(enc, 0)
     resp := new(Response) 
     
-    // Wait for reply, could probably start a timeout thing
-    reply, _ := rpc.Socket.Recv(0)
+    reply, err := rpc.Socket.Recv(0)
+    if err != nil {
+        log.Println("RPC recv failed:", err)
+        return -1, err
+    }
         
     err = json.Unmarshal(reply,resp) 
     
