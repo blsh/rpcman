@@ -10,7 +10,6 @@ import (
 )
 type RPCMan struct { 
     Context *zmq.Context
-    Socket *zmq.Socket
     ServAddr string 
 } 
     
@@ -27,23 +26,12 @@ type Response struct {
 
 func Init(addr string) RPCMan { 
     context, _ := zmq.NewContext()
-    socket, _ := context.NewSocket(zmq.REQ)
-
-    // set timeout to 1s
-    duration, _ := time.ParseDuration("1s")
-    socket.SetRcvTimeout(duration)
-
-    return RPCMan{context,socket,addr} 
+    return RPCMan{context,addr} 
 } 
 
-func (rpc RPCMan) Connect() error {
-    log.Println("Connecting to rpc server at ",rpc.ServAddr) 
-    return rpc.Socket.Connect(rpc.ServAddr)
-}     
 
 func (rpc RPCMan) Close() {
     defer rpc.Context.Close()
-    defer rpc.Socket.Close()
 }  
 
 func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){ 
@@ -56,10 +44,31 @@ func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){
         log.Println("json error", err) 
         return -1, err        
     } 
-    rpc.Socket.Send(enc, 0)
+    
+    socket, err := rpc.Context.NewSocket(zmq.REQ)
+    if err != nil {
+        log.Println("could not set up socket to rpcman",err)
+        return -1, err
+    }
+
+    // set timeout to 1s
+    duration, _ := time.ParseDuration("1s")
+    socket.SetRcvTimeout(duration)
+    
+    err = socket.Connect(rpc.ServAddr)
+    if err != nil {
+        log.Println("Could not connect to socket",err)
+        return -1, err
+    }
+    
+
+    
+    socket.Send(enc,0)
+    //rpc.Socket.Send(enc, 0)
     resp := new(Response) 
     
-    reply, err := rpc.Socket.Recv(0)
+    //reply, err := rpc.Socket.Recv(0)
+    reply, err := socket.Recv(0)
     if err != nil {
         log.Println("RPC recv failed:", err)
         return -1, err
@@ -75,6 +84,10 @@ func (rpc RPCMan) Call(method string, args ...interface{}) (interface{}, error){
     if resp.Status != 0 {
         return -1, errors.New("RPC Method not found:"+method) 
     } 
+
+    socket.Close()
+    
+
     
     return resp.Response, nil
 

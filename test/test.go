@@ -24,7 +24,6 @@ func genrands(num int) (ret [] float64) {
 
 func main() {
     rpc := rpcman.Init("tcp://localhost:5555") 
-    rpc.Connect() 
 
     for i := 0; i < 10; i++ {
         floats := genrands(100)
