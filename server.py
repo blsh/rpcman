@@ -50,8 +50,6 @@ if __name__ == "__main__":
         #  Wait for next request from client
         message = socket.recv()
 
-        print "Incoming request"
-
         req = ast.literal_eval(message)
 
         met = req["Method"]
@@ -60,6 +58,7 @@ if __name__ == "__main__":
         #result = getattr(globals, ()[met](args)
         status,result = call(rpc,met,args)
 
+
         if result == 0:
             resp = json.dumps({"Response":result,"Status":status})
         else:
@@ -67,5 +66,5 @@ if __name__ == "__main__":
         #  Send reply back to client
         socket.send(resp)
 
-        print "Completed RPC call"
+        print "Completed RPC call", resp
 
