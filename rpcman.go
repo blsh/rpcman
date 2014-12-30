@@ -12,7 +12,7 @@ import (
 
 type RPCMan struct {
 	Context  *zmq.Context
-	ServAddr string
+	ServAddr []string
 	Socket   *zmq.Socket
 	mutex    *sync.Mutex
 }
@@ -27,19 +27,20 @@ type Response struct {
 	Status   int
 }
 
-func Init(addr string) (*RPCMan, error) {
+func Init(addrs []string) (*RPCMan, error) {
 	context, _ := zmq.NewContext()
-	major, minor, patch := zmq.Version()
 
 	socket, err := context.NewSocket(zmq.REQ)
 	if err != nil {
 		log.Println("could not set up socket to rpcman", err)
 		return nil, err
 	}
-	err = socket.Connect(addr)
-	if err != nil {
-		log.Println("Could not connect to socket", err)
-		return nil, err
+	for _, addr := range addrs {
+		err = socket.Connect(addr)
+		if err != nil {
+			log.Println("Could not connect to socket", err)
+			return nil, err
+		}
 	}
 
 	// set timeout to 1s
@@ -51,7 +52,7 @@ func Init(addr string) (*RPCMan, error) {
 
 	rpc := RPCMan{
 		Context:  context,
-		ServAddr: addr,
+		ServAddr: addrs,
 		Socket:   socket,
 		mutex:    mutex}
 
